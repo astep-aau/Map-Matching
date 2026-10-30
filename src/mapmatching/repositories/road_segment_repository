@@ -1,0 +1,53 @@
+import psycopg
+from mapmatching.models.roadsegment import RoadSegment
+from mapmatching.models.coordinate import Coordinate
+
+from mapmatching.repositories.connection import connect 
+class RoadSegmentRepository:
+
+    #this creates local variables for the class, for some reason python needs them in the constructor
+    def __init__(self, connection: psycopg.Connection):
+        self.connection = connection
+
+
+
+    def get_all(self) -> tuple[RoadSegment, ...]:
+        #the sql query being run on the database
+        rows = self.fetch("SELECT fid, u, v, length, highway, ST_AsText(geometry) FROM osm_edges ORDER BY fid")
+        return tuple(self.convert_to_roadsegment(row) for row in rows)
+
+
+
+    #this is a helper function that converts the multiple amounts of coordinates given in a long string into coordinate objects
+    def convert_coords(self, linestring: str) -> tuple[Coordinate, ...]:
+        coordinates = []
+
+        innerStr = linestring[linestring.index("(") + 1 : linestring.rindex(")")]
+
+        for coordPair in innerStr.split(","):
+            lon, lat = coordPair.split()
+            coordinates.append(Coordinate(lon=float(lon), lat = float(lat)))
+        return tuple(coordinates)
+
+
+
+    def convert_to_roadsegment(self, row: tuple) -> RoadSegment:
+        return RoadSegment(
+            id=row[0],
+            source=row[1],
+            target=row[2],
+            length_m=row[3],
+            highway=row[4],
+            coordinates=self.convert_coords(row[5])
+        )
+
+
+
+    def fetch(self, query: str) -> list[tuple]:
+        #we try executing a given query, if it fails, then we make sure to close the opened cursor.
+        cursor = self.connection.cursor()
+        try:
+            cursor.execute(query)
+            return cursor.fetchall()
+        finally:
+            cursor.close()
