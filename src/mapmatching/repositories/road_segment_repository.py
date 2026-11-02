@@ -1,15 +1,8 @@
-import psycopg
 from mapmatching.models.roadsegment import RoadSegment
 from mapmatching.models.coordinate import Coordinate
+from mapmatching.repositories.base_repository import BaseRepository
 
-from mapmatching.repositories.connection import connect 
-class RoadSegmentRepository:
-
-    #this creates local variables for the class, for some reason python needs them in the constructor
-    def __init__(self, connection: psycopg.Connection):
-        self.connection = connection
-
-
+class RoadSegmentRepository(BaseRepository):
 
     def get_all(self) -> tuple[RoadSegment, ...]:
         #the sql query being run on the database
@@ -40,14 +33,3 @@ class RoadSegmentRepository:
             highway=row[4],
             coordinates=self.convert_coords(row[5])
         )
-
-
-
-    def fetch(self, query: str) -> list[tuple]:
-        #we try executing a given query, if it fails, then we make sure to close the opened cursor.
-        cursor = self.connection.cursor()
-        try:
-            cursor.execute(query)
-            return cursor.fetchall()
-        finally:
-            cursor.close()
