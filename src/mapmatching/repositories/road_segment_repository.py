@@ -33,3 +33,8 @@ class RoadSegmentRepository(BaseRepository):
             highway=row[4],
             coordinates=self.convert_coords(row[5])
         )
+
+    def test_repo(self) -> str:
+             count = self.fetch("SELECT count(*) FROM osm_edges")[0][0]
+             first = self.convert_to_roadsegment(self.fetch("SELECT fid, u, v, length, highway, ST_AsText(geometry) FROM osm_edges LIMIT 1")[0])
+             return f"Road Segment Repository has {count} rows, this is the first one: {first}"

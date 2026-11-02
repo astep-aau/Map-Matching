@@ -36,3 +36,8 @@ class TripRepository(BaseRepository):
             coordinate=Coordinate(lon=row[2],lat=row[3]),
             timestamp=row[1],
         )
+
+    def test_repo(self) -> str:
+             count = self.fetch("SELECT count(*) FROM trajectories")[0][0]
+             first = self.convert_to_trip(self.fetch("SELECT dataset, taxi_id, trajectory_id, gps_points FROM trajectories LIMIT 1")[0])
+             return f"Trip Repository has {count} rows, this is the first one: {first}"

@@ -12,3 +12,6 @@ class BaseRepository:
             return cursor.fetchall()
         finally:
             cursor.close()
+    
+    def test_repo(self) -> str:
+        raise NotImplementedError(f"{type(self).__name__} did not implement the function test_repo(self) -> str: fix it!")
