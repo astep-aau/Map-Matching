@@ -15,11 +15,11 @@ def repotest() -> None:
             RoadSegmentRepository(connection)
         ]
         for repository in repositories:
-            name = type(repository).__name__()
+            name = type(repository).__name__
             try:
                 print(name + ": " + repository.test_repo())
             except Exception as error:
-                print(name + " Failed... error: " + error)
-                connection.rollback
+                print(name + " Failed... error: " + str(error))
+                connection.rollback()
     finally:
         connection.close()
