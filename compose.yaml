@@ -1,0 +1,47 @@
+# ---------------------------------------------------------------
+# aSTEP Project 1 - Map Matching
+#
+# The database is NOT defined here. It belongs to the data repository
+# (github.com/astep-aau/data), which owns the schema and the datasets.
+# Map matching treats it as an external database - locally exactly as
+# in production, where DB_HOST points at the shared database instead.
+#
+# 1. Start the database (once, in the data repository):
+#      cd ../data
+#      cp .env.example .env
+#      docker compose up -d --build       # first time: downloads + imports
+#      docker compose up -d db            # later: database only
+#
+# 2. Run map matching (in this repository):
+#      docker compose up --build                        # default command
+#      docker compose run --rm map-matching <command>   # any other command
+# ---------------------------------------------------------------
+name: map-matching
+
+services:
+
+  # The map matching service: reads trajectories and the road network from
+  # the database, matches them and writes the result back. A batch job that
+  # runs one command and exits (a Kubernetes Job in production) - no ports.
+  map-matching:
+    build: .
+    image: ghcr.io/astep-aau/map-matching:local
+    container_name: map-matching
+    environment:
+      # Read by src/mapmatching/repositories/config.py.
+      # Default: the data repository's database, reached through the port
+      # it publishes on your machine (POSTGRES_PORT there, 5432 by default).
+      DB_HOST: ${DOCKER_DB_HOST:-host.docker.internal}
+      DB_PORT: ${DOCKER_DB_PORT:-5432}
+      DB_NAME: ${DB_NAME:-data}
+      DB_USER: ${DB_USER:-postgres}
+      DB_PASSWORD: ${DB_PASSWORD:-postgres}
+    extra_hosts:
+      # Makes host.docker.internal work on Linux too (built in on Windows/Mac)
+      - "host.docker.internal:host-gateway"
+    # No command yet: the image runs `mapmatch --help` and exits.
+    # When the matching command exists, set it here, e.g.
+    # command: ["match"]
+    # Our Kubernetes namespace has a memory limit. Uncomment and set it to
+    # that limit to test locally whether a run fits.
+    # mem_limit: ${MAPMATCH_MEM_LIMIT:-2g}
