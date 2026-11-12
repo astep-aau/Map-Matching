@@ -9,7 +9,7 @@
 # ---------------------------------------------------------------
 
 # ---------- Stage 1: build FMM (latest master) from source ----------
-FROM python:3.12-slim-trixie AS fmm-build
+FROM python:3.12-slim-bookworm AS fmm-build
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
         build-essential cmake swig git \
@@ -18,12 +18,14 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && rm -rf /var/lib/apt/lists/* \
     && pip install --no-cache-dir setuptools
 
-RUN git clone --depth 1 --branch master https://github.com/cyang-kth/fmm.git /src/fmm
+RUN git clone --depth 1 --branch master https://github.com/cyang-kth/fmm.git /src/fmm \
+    && sed -i -e 's/c++11/c++14/g' \
+              -e 's/CMAKE_CXX_STANDARD 11/CMAKE_CXX_STANDARD 14/' /src/fmm/CMakeLists.txt
 WORKDIR /src/fmm/build
 RUN cmake .. && make -j4 && make install
 
 # ---------- Stage 2: the mapmatching image ----------
-FROM python:3.12-slim-trixie
+FROM python:3.12-slim-bookworm
 
 # - no .pyc files, logs are printed immediately (important for `docker logs`)
 # - no pip cache / version check, keeps the image small and the build quiet
@@ -36,7 +38,7 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
 # and Python bindings from the build stage. Must come before any pip install,
 # because it replaces /usr/local (where Python and its packages live).
 RUN apt-get update && apt-get install -y --no-install-recommends \
-        gdal-bin libboost-serialization1.83.0 libgomp1 \
+        gdal-bin libgdal32 libboost-serialization1.74.0 libgomp1 \
     && rm -rf /var/lib/apt/lists/*
 COPY --from=fmm-build /usr/local /usr/local
 
