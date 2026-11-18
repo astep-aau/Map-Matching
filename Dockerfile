@@ -63,8 +63,11 @@ COPY README.md ./
 COPY src ./src
 RUN pip install --no-deps .
 
-# Do not run as root inside the container
-RUN useradd --create-home --uid 1000 mapmatch
+# Do not run as root inside the container. /data is the cache folder
+# (mounted as the fmm-cache volume in compose.yaml), owned by mapmatch
+# so the program is allowed to write there.
+RUN useradd --create-home --uid 1000 mapmatch \
+    && mkdir /data && chown mapmatch /data
 USER mapmatch
 
 # The image behaves like the `mapmatch` command:

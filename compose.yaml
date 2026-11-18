@@ -39,9 +39,16 @@ services:
     extra_hosts:
       # Makes host.docker.internal work on Linux too (built in on Windows/Mac)
       - "host.docker.internal:host-gateway"
+    volumes:
+      - fmm-cache:/data
     # No command yet: the image runs `mapmatch --help` and exits.
     # When the matching command exists, set it here, e.g.
     # command: ["match"]
     # Our Kubernetes namespace has a memory limit. Uncomment and set it to
     # that limit to test locally whether a run fits.
     # mem_limit: ${MAPMATCH_MEM_LIMIT:-2g}
+
+# Keeps files in /data (the exported road network, later the UBODT)
+# between runs. Delete with: docker volume rm map-matching_fmm-cache
+volumes:
+  fmm-cache:
