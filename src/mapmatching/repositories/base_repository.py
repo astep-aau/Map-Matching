@@ -1,6 +1,9 @@
 import psycopg
 
 class BaseRepository:
+    #Repositories are a design pattern that have the responsibility of communicating with the database, 
+    #they fetch data and convert it to objects we can use in Python.
+    
     def __init__(self, connection: psycopg.Connection):
         self.connection = connection
 
