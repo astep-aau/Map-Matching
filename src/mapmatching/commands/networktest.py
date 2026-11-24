@@ -1,14 +1,14 @@
 from mapmatching.algorithms.network import load_network
 from mapmatching.repositories.config import Settings
 from mapmatching.repositories.connection import connect
+from mapmatching.repositories.road_segment_repository import RoadSegmentRepository
 
 
 def networktest() -> None:
-    settings = Settings.load_env_info()
-    network, graph = load_network(settings)
-
-    connection = connect(settings)
+    connection = connect(Settings.load_env_info())
     try:
+        network, graph = load_network(RoadSegmentRepository(connection))
+
         with connection.cursor() as cursor:
             cursor.execute("SELECT count(*) FROM osm_edges")
             expected = cursor.fetchone()[0]
