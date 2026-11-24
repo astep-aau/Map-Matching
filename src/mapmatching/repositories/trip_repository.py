@@ -13,13 +13,14 @@ class TripRepository(BaseRepository):
         rows = self.fetch("SELECT count(*) FROM trajectories")
         return rows[0][0]
 
-    def get_batch(self, batch_number: int, batch_size: int) -> tuple[Trip, ...]:
-            rows = self.fetch("SELECT dataset, taxi_id, trajectory_id, gps_points FROM trajectories "
-                              "ORDER BY dataset, taxi_id, trajectory_id "
-                              "LIMIT %s OFFSET %s",
-                              (batch_size, batch_number * batch_size),
-                              )
-            return tuple(self.convert_to_trip(row) for row in rows)
+    def get_batch(self, dataset: str, batch_number: int, batch_size: int) -> tuple[Trip, ...]:
+        rows = self.fetch("SELECT dataset, taxi_id, trajectory_id, gps_points FROM trajectories "
+                          "WHERE dataset = %s "
+                          "ORDER BY dataset, taxi_id, trajectory_id "
+                          "LIMIT %s OFFSET %s",
+                          (dataset, batch_size, batch_number * batch_size),
+                          )
+        return tuple(self.convert_to_trip(row) for row in rows)
     
     def get_all(self) -> tuple[Trip, ...]:
         rows = self.fetch("SELECT dataset, taxi_id, trajectory_id, gps_points FROM trajectories")
