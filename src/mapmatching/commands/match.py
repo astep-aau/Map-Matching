@@ -6,6 +6,7 @@ import typer
 from mapmatching.repositories.config import Settings
 from mapmatching.repositories.connection import connect
 from mapmatching.repositories.trip_repository import TripRepository
+from mapmatching.repositories.road_segment_repository import RoadSegmentRepository
 
 #from mapmatching.algorithms.fmm.fmm_matcher import FmmMatcher
 #from mapmatching.algorithms.stmatch.stmatch_matcher import StMatcher
@@ -30,18 +31,8 @@ def match(
     #this functionality should be exported to its own command potentially
     
     settings = Settings.load_env_info()
-    #create network graph
-    network, graph = load_network(settings)
     #create database connection
     connection = connect(settings)
-
-    #instantiate either fmm matcher or stmatcher, with all their parameters, depending on which algorithm user selected
-    if algorithm == Algorithm.stmatch:
-        params = {"k": k, "radius": radius, "gps_error": gps_error} #later include: "vmax": vmax, "factor": factor
-        #matcher = StMatcher(network, graph, params)
-    else:
-        params = {"k": k, "radius": radius, "gps_error": gps_error} #later include: "delta": delta
-        #matcher = FmmMatcher(network, graph, params)
 
     #try fetching trajectories
     try:
@@ -49,7 +40,17 @@ def match(
         batch_number = 0
 
         tripFetcher = TripRepository(connection)
+        roadSegmentFetcher = RoadSegmentRepository(connection)
         matchedtripUploader = MatchedTripRepository(connection)
+        network, graph = load_network(roadSegmentFetcher)
+
+        #instantiate either fmm matcher or stmatcher, with all their parameters, depending on which algorithm user selected
+        if algorithm == Algorithm.stmatch:
+            params = {"k": k, "radius": radius, "gps_error": gps_error} #later include: "vmax": vmax, "factor": factor
+            #matcher = StMatcher(network, graph, params)
+        else:
+            params = {"k": k, "radius": radius, "gps_error": gps_error} #later include: "delta": delta
+            #matcher = FmmMatcher(network, graph, params)
 
         while True:
             batch = tripFetcher.get_batch(dataset=dataset, batch_number = batch_number, batch_size= batch_size)
