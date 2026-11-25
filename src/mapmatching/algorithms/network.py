@@ -1,7 +1,7 @@
 import os
 import shutil
 
-from fmm import Network, NetworkGraph
+from fmm import Network, NetworkGraph, UBODT, UBODTGenAlgorithm
 
 from mapmatching.repositories.road_segment_repository import RoadSegmentRepository
 
@@ -36,3 +36,15 @@ def load_network(road_segments: RoadSegmentRepository) -> tuple[Network, Network
 
     print(f"Network loaded: {network.get_node_count()} nodes, {network.get_edge_count()} edges")
     return network, graph
+
+def load_ubodt(network: Network, graph: NetworkGraph, delta: float) -> UBODT:
+
+    ubodt_file = f"/data/ubodt_{NETWORK_CRS}_{int(delta)}.bin"
+
+    if not os.path.exists(ubodt_file):
+        print(f"Generating UBODT (delta={delta} m) Might be slow")
+        temporary = f"{ubodt_file}.tmp"
+        UBODTGenAlgorithm(network, graph).generate_ubodt(temporary, delta, binary=True, use_omp=True)
+        os.replace(temporary, ubodt_file)
+
+    return UBODT.read_ubodt_binary(ubodt_file)

@@ -11,7 +11,8 @@ from mapmatching.repositories.road_segment_repository import RoadSegmentReposito
 #from mapmatching.algorithms.fmm.fmm_matcher import FmmMatcher
 #from mapmatching.algorithms.stmatch.stmatch_matcher import StMatcher
 from mapmatching.repositories.matched_trip_repository import MatchedTripRepository
-from mapmatching.algorithms.network import load_network
+from mapmatching.algorithms.network import load_network, load_ubodt
+from mapmatching.algorithms.fmm.fmm_matcher import FmmMatcher
 
 class Algorithm(str, Enum):
     fmm = "fmm"
@@ -25,6 +26,7 @@ def match(
         k: Annotated[int, typer.Option(help="Number of candidate roads per GPS point.")] = 8,
         radius: Annotated[float, typer.Option(help= "Candidate search radius, in metres.")] = 300.0,
         gps_error: Annotated[float, typer.Option(help="Expected GPS error, in metres.")] = 50.0,
+        delta: Annotated[float, typer.Option(help="Delta value given to Ubodt.")] = 3000.0,
         dry_run: Annotated[bool, typer.Option(help="Match but do not save results.")] = False,
 ) -> None:
     """This command executes map matching to trips from the database with the chosen algorithm."""
@@ -38,6 +40,8 @@ def match(
     try:
         done = 0
         batch_number = 0
+        total_matched = 0
+        total_failed = 0
 
         tripFetcher = TripRepository(connection)
         roadSegmentFetcher = RoadSegmentRepository(connection)
@@ -48,9 +52,10 @@ def match(
         if algorithm == Algorithm.stmatch:
             params = {"k": k, "radius": radius, "gps_error": gps_error} #later include: "vmax": vmax, "factor": factor
             #matcher = StMatcher(network, graph, params)
-        else:
-            params = {"k": k, "radius": radius, "gps_error": gps_error} #later include: "delta": delta
-            #matcher = FmmMatcher(network, graph, params)
+        else: 
+            params = {"k": k, "radius": radius, "gps_error": gps_error, "delta": delta} 
+            ubodt = load_ubodt(network, graph, delta)
+            matcher = FmmMatcher(network, graph, ubodt, params)
 
         while True:
             batch = tripFetcher.get_batch(dataset=dataset, batch_number = batch_number, batch_size= batch_size)
@@ -58,13 +63,23 @@ def match(
                 batch = batch[:limit - done]
             if not batch:
                 break
-            #results = [matcher.match_trip(trip) for trip in batch]
-            #if not dry_run:
-            #    matchedtripUploader.save_all(results)
+            results = [matcher.match_trip(trip) for trip in batch]
+            
+            if not dry_run:
+                matchedtripUploader.save_all(results)
+            failed = sum(1 for r in results if r.status == "failed")
+            total_failed += failed
+            total_matched += len(results) - failed
+            
+            
             done += len(batch)
             batch_number += 1
 
             typer.echo(f"algorithm={algorithm.value}, fetched {len(batch)} trips")
+        typer.echo(
+            f"Done. algorithm={algorithm.value}, trips={done}, "
+            f"matched={total_matched}, failed={total_failed}, dry_run={dry_run}"
+        )
 
     finally:
         connection.close()
