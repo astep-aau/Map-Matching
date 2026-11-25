@@ -8,11 +8,11 @@ from mapmatching.repositories.connection import connect
 from mapmatching.repositories.trip_repository import TripRepository
 from mapmatching.repositories.road_segment_repository import RoadSegmentRepository
 
-#from mapmatching.algorithms.fmm.fmm_matcher import FmmMatcher
-#from mapmatching.algorithms.stmatch.stmatch_matcher import StMatcher
+from mapmatching.algorithms.fmm.fmm_matcher import FMMmatcher
+from mapmatching.algorithms.stmatch.st_matcher import STmatcher
 from mapmatching.repositories.matched_trip_repository import MatchedTripRepository
 from mapmatching.algorithms.network import load_network, load_ubodt
-from mapmatching.algorithms.fmm.fmm_matcher import FmmMatcher
+
 
 class Algorithm(str, Enum):
     fmm = "fmm"
@@ -27,6 +27,8 @@ def match(
         radius: Annotated[float, typer.Option(help= "Candidate search radius, in metres.")] = 300.0,
         gps_error: Annotated[float, typer.Option(help="Expected GPS error, in metres.")] = 50.0,
         delta: Annotated[float, typer.Option(help="Delta value given to Ubodt.")] = 3000.0,
+        vmax: Annotated[float, typer.Option(help="Maximum speed of the vehicle, in metres per second.")] = 30.0,
+        factor: Annotated[float, typer.Option(help="Factor for the STmatch algorithm.")] = 1.5,
         dry_run: Annotated[bool, typer.Option(help="Match but do not save results.")] = False,
 ) -> None:
     """This command executes map matching to trips from the database with the chosen algorithm."""
@@ -50,17 +52,19 @@ def match(
 
         #instantiate either fmm matcher or stmatcher, with all their parameters, depending on which algorithm user selected
         if algorithm == Algorithm.stmatch:
-            params = {"k": k, "radius": radius, "gps_error": gps_error} #later include: "vmax": vmax, "factor": factor
-            #matcher = StMatcher(network, graph, params)
+            params = {"k": k, "radius": radius, "gps_error": gps_error, "vmax": vmax, "factor": factor}
+            matcher = STmatcher(network, graph, params)
         else: 
             params = {"k": k, "radius": radius, "gps_error": gps_error, "delta": delta} 
             ubodt = load_ubodt(network, graph, delta)
-            matcher = FmmMatcher(network, graph, ubodt, params)
+            matcher = FMMmatcher(network, graph, ubodt, params)
 
         while True:
             batch = tripFetcher.get_batch(dataset=dataset, batch_number = batch_number, batch_size= batch_size)
+            
             if limit is not None:
                 batch = batch[:limit - done]
+            
             if not batch:
                 break
             results = [matcher.match_trip(trip) for trip in batch]
@@ -71,11 +75,9 @@ def match(
             total_failed += failed
             total_matched += len(results) - failed
             
-            
             done += len(batch)
             batch_number += 1
-
-            typer.echo(f"algorithm={algorithm.value}, fetched {len(batch)} trips")
+   
         typer.echo(
             f"Done. algorithm={algorithm.value}, trips={done}, "
             f"matched={total_matched}, failed={total_failed}, dry_run={dry_run}"

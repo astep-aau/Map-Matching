@@ -9,7 +9,7 @@ from mapmatching.models.trip import Trip
 # Converts GPS points from degrees to the same metres as the road network
 TO_METRES = Transformer.from_crs(4326, NETWORK_CRS, always_xy=True)
 
-# The GPS points as a line in metres, the input format FMM uses
+# The GPS points as a line in metres, the input format STmatch uses
 def trip_to_wkt(trip: Trip) -> str:
     lons = [point.coordinate.lon for point in trip.points]
     lats = [point.coordinate.lat for point in trip.points]
