@@ -12,6 +12,10 @@ on:
       limit:
         description: "Maximum number of trips (empty = all)"
         default: ""
+      dry_run:
+        description: "Match without saving results"
+        type: boolean
+        default: true
 
 permissions:
   contents: read
@@ -54,10 +58,11 @@ jobs:
           job="map-matching-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
           args="\"match\", \"--algorithm\", \"${{ inputs.algorithm }}\", \"--dataset\", \"${{ inputs.dataset }}\""
           if [ -n "${{ inputs.limit }}" ]; then args="$args, \"--limit\", \"${{ inputs.limit }}\""; fi
+          if [ "${{ inputs.dry_run }}" = "true" ]; then args="$args, \"--dry-run\""; fi
           sed -e "s|MATCH_JOB|$job|" \
               -e "s|MATCH_IMAGE|ghcr.io/${{ github.repository_owner }}/map-matching:${{ github.sha }}|" \
               -e "s|MATCH_ARGS|[$args]|" k8s/match.yaml | kubectl create -f -
-          if ! kubectl wait --for=condition=complete "job/$job" -n main --timeout=6h; then
+          if ! kubectl wait --for=condition=complete "job/$job" -n main --timeout=30m; then
             kubectl logs "job/$job" -n main || true
             exit 1
           fi
