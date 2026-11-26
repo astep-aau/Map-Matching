@@ -3,14 +3,13 @@ import pkgutil
 
 import typer
 
-from mapmatching import commands
+from map_matching import commands
 
 app = typer.Typer(no_args_is_help = True)
 
 @app.callback()
 def main() -> None:
     """Map matching happens here."""
-
 
 def register_commands() -> None:
     """This function scans all files in the commands folder and registers them as a CLI command on the app object"""

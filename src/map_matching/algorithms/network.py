@@ -3,13 +3,12 @@ import shutil
 
 from fmm import Network, NetworkGraph, UBODT, UBODTGenAlgorithm
 
-from mapmatching.repositories.road_segment_repository import RoadSegmentRepository
+from map_matching.repositories.road_segment_repository import RoadSegmentRepository
 
 # Coordinate system in metres (UTM zone 50N) instead of degrees
 NETWORK_CRS = 32650
 NETWORK_FOLDER = f"/data/edges_{NETWORK_CRS}"
 NETWORK_FILE = f"{NETWORK_FOLDER}/edges.shp"
-
 
 def export_network(road_segments: RoadSegmentRepository) -> str:
     # If the file already exists in the cache, then return it
@@ -25,7 +24,6 @@ def export_network(road_segments: RoadSegmentRepository) -> str:
 
     os.replace(temporary, NETWORK_FOLDER)
     return NETWORK_FILE
-
 
 def load_network(road_segments: RoadSegmentRepository) -> tuple[Network, NetworkGraph]:
     # Loads the roads from the file into memory, so FMM can use them. Also a grid for fast lookups

@@ -1,12 +1,10 @@
 from fmm import FastMapMatch, FastMapMatchConfig
 
-from mapmatching.algorithms.base_matcher import trip_to_wkt, BaseMatcher
-from mapmatching.models.trip import Trip
+from map_matching.algorithms.base_matcher import trip_to_wkt, BaseMatcher
+from map_matching.models.trip import Trip
 
-
-class FMMmatcher(BaseMatcher):
+class FMMMatcher(BaseMatcher):
     algorithm = "fmm"
-
     
     def __init__(self, network, graph, ubodt, params: dict):
         super().__init__(params)

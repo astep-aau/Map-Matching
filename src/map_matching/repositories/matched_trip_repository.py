@@ -1,8 +1,7 @@
 from psycopg.types.json import Jsonb
 
-from mapmatching.models.matchedtrip import MatchedTrip
-from mapmatching.repositories.base_repository import BaseRepository
-
+from map_matching.models.matched_trip import MatchedTrip
+from map_matching.repositories.base_repository import BaseRepository
 
 class MatchedTripRepository(BaseRepository):
 
@@ -16,7 +15,6 @@ class MatchedTripRepository(BaseRepository):
         "params = EXCLUDED.params, "
         "matched_at = now()"
     )
-
 
     def save_all(self, matched_trips: tuple[MatchedTrip, ...]) -> None:
         """Saves a batch of trips"""
@@ -43,14 +41,14 @@ class MatchedTripRepository(BaseRepository):
             Jsonb(trip.params),
         )
 
-    def test_repo(self) -> str:
+    def test_repository(self) -> str:
         count = self.fetch("SELECT count(*) FROM map_matching.matched_trajectories")[0][0]
 
         cursor = self.connection.cursor()
         try:
             cursor.execute(
                 self.INSERT_SQL,
-                ("repotest", "0", "0", "fmm", "failed", None, Jsonb({})),
+                ("repository_test", "0", "0", "fmm", "failed", None, Jsonb({})),
             )
         finally:
             cursor.close()

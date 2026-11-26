@@ -1,7 +1,7 @@
 from dataclasses import dataclass, field
 from typing import Literal
 
-from mapmatching.models.trip import TripId
+from map_matching.models.trip_id import TripId
 
 @dataclass(frozen=True, slots=True)
 class MatchedTrip:
