@@ -1,0 +1,64 @@
+name: map-matching
+
+on:
+  workflow_dispatch:
+    inputs:
+      algorithm:
+        description: "fmm or stmatch"
+        default: stmatch
+      dataset:
+        description: "traj_valid or traj_test"
+        default: traj_valid
+      limit:
+        description: "Maximum number of trips (empty = all)"
+        default: ""
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: true
+          tags: |
+            ghcr.io/${{ github.repository_owner }}/map-matching:latest
+            ghcr.io/${{ github.repository_owner }}/map-matching:${{ github.sha }}
+
+  run:
+    needs: build-and-push
+    runs-on: self-hosted
+    timeout-minutes: 360
+    env:
+      KUBECONFIG: /etc/k3s-kubeconfig
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: create cache volume
+        run: kubectl apply -f k8s/cache.yaml
+
+      - name: run map matching
+        run: |
+          job="map-matching-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
+          args="\"match\", \"--algorithm\", \"${{ inputs.algorithm }}\", \"--dataset\", \"${{ inputs.dataset }}\""
+          if [ -n "${{ inputs.limit }}" ]; then args="$args, \"--limit\", \"${{ inputs.limit }}\""; fi
+          sed -e "s|MATCH_JOB|$job|" \
+              -e "s|MATCH_IMAGE|ghcr.io/${{ github.repository_owner }}/map-matching:${{ github.sha }}|" \
+              -e "s|MATCH_ARGS|[$args]|" k8s/match.yaml | kubectl create -f -
+          if ! kubectl wait --for=condition=complete "job/$job" -n main --timeout=6h; then
+            kubectl logs "job/$job" -n main || true
+            exit 1
+          fi
+          kubectl logs "job/$job" -n main

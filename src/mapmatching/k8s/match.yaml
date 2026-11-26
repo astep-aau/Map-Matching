@@ -1,0 +1,38 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: MATCH_JOB
+  namespace: main
+spec:
+  backoffLimit: 0
+  ttlSecondsAfterFinished: 86400
+  template:
+    spec:
+      restartPolicy: Never
+      securityContext:
+        fsGroup: 1000
+      containers:
+        - name: map-matching
+          image: MATCH_IMAGE
+          args: MATCH_ARGS
+          env:
+            - name: DB_HOST
+              value: dataset-postgres.main.svc.cluster.local
+            - name: DB_PORT
+              value: "5432"
+            - name: DB_NAME
+              valueFrom: { secretKeyRef: { name: postgres-secret, key: POSTGRES_DB } }
+            - name: DB_USER
+              valueFrom: { secretKeyRef: { name: postgres-secret, key: POSTGRES_USER } }
+            - name: DB_PASSWORD
+              valueFrom: { secretKeyRef: { name: postgres-secret, key: POSTGRES_PASSWORD } }
+          resources:
+            limits:
+              memory: 4Gi
+          volumeMounts:
+            - name: fmm-cache
+              mountPath: /data
+      volumes:
+        - name: fmm-cache
+          persistentVolumeClaim:
+            claimName: map-matching-cache
