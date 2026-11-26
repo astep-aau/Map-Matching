@@ -44,7 +44,7 @@ jobs:
   run:
     needs: build-and-push
     runs-on: self-hosted
-    timeout-minutes: 360
+    timeout-minutes: 720
     env:
       KUBECONFIG: /etc/k3s-kubeconfig
     steps:
@@ -62,7 +62,7 @@ jobs:
           sed -e "s|MATCH_JOB|$job|" \
               -e "s|MATCH_IMAGE|ghcr.io/${{ github.repository_owner }}/map-matching:${{ github.sha }}|" \
               -e "s|MATCH_ARGS|[$args]|" k8s/match.yaml | kubectl create -f -
-          if ! kubectl wait --for=condition=complete "job/$job" -n main --timeout=30m; then
+          if ! kubectl wait --for=condition=complete "job/$job" -n main --timeout=12h; then
             kubectl logs "job/$job" -n main || true
             exit 1
           fi
