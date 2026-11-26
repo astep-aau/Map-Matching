@@ -2,9 +2,9 @@ from abc import ABC, abstractmethod
 
 from pyproj import Transformer
 
-from mapmatching.algorithms.network import NETWORK_CRS
-from mapmatching.models.matchedtrip import MatchedTrip
-from mapmatching.models.trip import Trip
+from map_matching.algorithms.network import NETWORK_CRS
+from map_matching.models.matched_trip import MatchedTrip
+from map_matching.models.trip import Trip
 
 # Converts GPS points from degrees to the same metres as the road network
 TO_METRES = Transformer.from_crs(4326, NETWORK_CRS, always_xy=True)
@@ -16,7 +16,6 @@ def trip_to_wkt(trip: Trip) -> str:
     xs, ys = TO_METRES.transform(lons, lats)
     points = ", ".join(f"{x} {y}" for x, y in zip(xs, ys))
     return f"LINESTRING({points})"
-
 
 class BaseMatcher(ABC):
     # Each algorithm sets its own name: "fmm" or "stmatch"

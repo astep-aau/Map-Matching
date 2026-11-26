@@ -1,84 +1,43 @@
-\# aSTEP Map Matching!
-
-
+# aSTEP Map Matching!
 
 Matches GPS trajectories from the database to the road network.
 
+## Before you start
 
-
-\## Before you start
-
-
-
-The database lives in the \[data repo](https://github.com/astep-aau/data). Set it up first and wait until `get-data` prints `Done`. After that, just make sure it is running:
-
-
+The database lives in the ["Database" repository](https://github.com/astep-aau/Database). Set it up first and wait until `get-data` prints `Done`. After that, just make sure it is running:
 
 ```bash
-
-\# in the data repo
-
+# in the "Database" repository
 docker compose up -d db
-
 ```
 
-
-
-\## Env stuff
-
-
+## Env stuff
 
 ```bash
-
 cp .env.example .env
-
 ```
 
+## Setup
 
-
-\## Setup
-
-
-
-\### Wanna run it?
-
-
+### Wanna run it?
 
 ```bash
-
 docker compose up --build
-
 ```
 
-
-
-\### Wanna check the database connection?
-
-
+### Wanna check the database connection?
 
 ```bash
-
-docker compose run --rm map-matching repotest
-
+docker compose run --rm map-matching repository_test
 ```
 
-
-
-\### Wanna run another command?
-
-
+### Wanna run another command?
 
 ```bash
-
 docker compose run --rm map-matching <command>
-
 ```
 
-
-
-\## Something broke?
-
-
+## Something broke?
 
 `password authentication failed for user "postgres"` - you have PostgreSQL installed on your machine using port 5432. Set `POSTGRES\_PORT=5433` in the data repo's `.env`, run `docker compose up -d db` there, and set `DOCKER\_DB\_PORT=5433` in this repo's `.env`.
 

@@ -1,11 +1,11 @@
 # ---------------------------------------------------------------
-# Image for the aSTEP map matching CLI (package "mapmatching")
+# Image for the aSTEP map matching CLI (package "map_matching")
 #
-#   docker build -t astep/mapmatching .
-#   docker run --rm astep/mapmatching --help
+#   docker build -t astep/map_matching .
+#   docker run --rm astep/map_matching --help
 #
 # To pull the latest FMM master (the clone step is cached otherwise):
-#   docker build --no-cache-filter fmm-build -t astep/mapmatching .
+#   docker build --no-cache-filter fmm-build -t astep/map_matching .
 # ---------------------------------------------------------------
 
 # ---------- Stage 1: build FMM (latest master) from source ----------
@@ -24,7 +24,7 @@ RUN git clone --depth 1 --branch master https://github.com/cyang-kth/fmm.git /sr
 WORKDIR /src/fmm/build
 RUN cmake .. && make -j4 && make install
 
-# ---------- Stage 2: the mapmatching image ----------
+# ---------- Stage 2: the map_matching image ----------
 FROM python:3.12-slim-bookworm
 
 # - no .pyc files, logs are printed immediately (important for `docker logs`)
@@ -71,6 +71,6 @@ RUN useradd --create-home --uid 1000 mapmatch \
 USER mapmatch
 
 # The image behaves like the `mapmatch` command:
-#   docker run --rm astep/mapmatching repotest
+#   docker run --rm astep/map_matching repository_test
 ENTRYPOINT ["mapmatch"]
 CMD ["--help"]

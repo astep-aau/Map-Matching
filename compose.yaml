@@ -1,12 +1,12 @@
 # ---------------------------------------------------------------
 # aSTEP Project 1 - Map Matching
 #
-# The database is NOT defined here. It belongs to the data repository
-# (github.com/astep-aau/data), which owns the schema and the datasets.
+# The database is NOT defined here. It belongs to the "Database" repository
+# (github.com/astep-aau/Database), which owns the schema and the datasets.
 # Map matching treats it as an external database - locally exactly as
 # in production, where DB_HOST points at the shared database instead.
 #
-# 1. Start the database (once, in the data repository):
+# 1. Start the database (once, in the "Database" repository):
 #      cd ../data
 #      cp .env.example .env
 #      docker compose up -d --build       # first time: downloads + imports
@@ -28,7 +28,7 @@ services:
     image: ghcr.io/astep-aau/map-matching:local
     container_name: map-matching
     environment:
-      # Read by src/mapmatching/repositories/config.py.
+      # Read by src/map_matching/repositories/config.py.
       # Default: the data repository's database, reached through the port
       # it publishes on your machine (POSTGRES_PORT there, 5432 by default).
       DB_HOST: ${DOCKER_DB_HOST:-host.docker.internal}

@@ -1,11 +1,9 @@
-from mapmatching.repositories.base_repository import BaseRepository
+from map_matching.repositories.base_repository import BaseRepository
 
-from mapmatching.models.trip import Trip, TripId
-from mapmatching.models.coordinate import Coordinate
-from mapmatching.models.gpspoint import GpsPoint
-
-
-
+from map_matching.models.trip import Trip
+from map_matching.models.trip_id import TripId
+from map_matching.models.coordinate import Coordinate
+from map_matching.models.gps_point import GpsPoint
 
 class TripRepository(BaseRepository):
 
@@ -29,16 +27,16 @@ class TripRepository(BaseRepository):
     def convert_to_trip(self, row: tuple) -> Trip:
         return Trip(
             id = TripId(dataset=row[0], taxi_id=row[1], trajectory_id=row[2]),
-            points=tuple(self.convert_to_gps_point(p) for p in row[3]),
+            points = tuple(self.convert_to_gps_point(p) for p in row[3]),
         )
 
     def convert_to_gps_point(self, row: tuple) -> GpsPoint:
         return GpsPoint(
-            coordinate=Coordinate(lon=row[2],lat=row[3]),
-            timestamp=row[1],
+            coordinate = Coordinate(lon=row[2],lat=row[3]),
+            timestamp = row[1],
         )
 
-    def test_repo(self) -> str:
-             count = self.fetch("SELECT count(*) FROM trajectories")[0][0]
-             first = self.convert_to_trip(self.fetch("SELECT dataset, taxi_id, trajectory_id, gps_points FROM trajectories LIMIT 1")[0])
-             return f"Trip Repository has {count} rows, this is the first one: {first}"
+    def test_repository(self) -> str:
+        count = self.fetch("SELECT count(*) FROM trajectories")[0][0]
+        first = self.convert_to_trip(self.fetch("SELECT dataset, taxi_id, trajectory_id, gps_points FROM trajectories LIMIT 1")[0])
+        return f"Trip Repository has {count} rows, this is the first one: {first}"

@@ -1,0 +1,21 @@
+from map_matching.repositories.base_repository import BaseRepository
+
+from map_matching.models.node import Node
+from map_matching.models.coordinate import Coordinate 
+
+class NodeRepository(BaseRepository):
+
+    def get_all(self) -> tuple[Node,...]:
+        rows = self.fetch("SELECT osmid, x, y FROM osm_nodes")
+        return tuple(self.convert_to_node(row) for row in rows)
+
+    def convert_to_node(self, row: tuple) -> Node:
+        return Node(
+            id=row[0],
+            coordinate=Coordinate(row[1], row[2])
+        )
+
+    def test_repository(self) -> str:
+        count = self.fetch("SELECT count(*) FROM osm_nodes")[0][0]
+        first = self.convert_to_node(self.fetch("SELECT osmid, x, y FROM osm_nodes LIMIT 1")[0])
+        return f"Node Repository has {count} rows, this is the first one: {first}"

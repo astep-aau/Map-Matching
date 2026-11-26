@@ -3,16 +3,15 @@ from typing import Annotated
 
 import typer
 
-from mapmatching.repositories.config import Settings
-from mapmatching.repositories.connection import connect
-from mapmatching.repositories.trip_repository import TripRepository
-from mapmatching.repositories.road_segment_repository import RoadSegmentRepository
+from map_matching.repositories.config import Settings
+from map_matching.repositories.connection import connect
+from map_matching.repositories.trip_repository import TripRepository
+from map_matching.repositories.road_segment_repository import RoadSegmentRepository
 
-from mapmatching.algorithms.fmm.fmm_matcher import FMMmatcher
-from mapmatching.algorithms.stmatch.st_matcher import STmatcher
-from mapmatching.repositories.matched_trip_repository import MatchedTripRepository
-from mapmatching.algorithms.network import load_network, load_ubodt
-
+from map_matching.algorithms.fmm.fmm_matcher import FMMMatcher
+from map_matching.algorithms.stmatch.st_matcher import STMatcher
+from map_matching.repositories.matched_trip_repository import MatchedTripRepository
+from map_matching.algorithms.network import load_network, load_ubodt
 
 class Algorithm(str, Enum):
     fmm = "fmm"
@@ -45,22 +44,22 @@ def match(
         total_matched = 0
         total_failed = 0
 
-        tripFetcher = TripRepository(connection)
-        roadSegmentFetcher = RoadSegmentRepository(connection)
-        matchedtripUploader = MatchedTripRepository(connection)
-        network, graph = load_network(roadSegmentFetcher)
+        trip_fetcher = TripRepository(connection)
+        road_segment_fetcher = RoadSegmentRepository(connection)
+        matched_trip_uploader = MatchedTripRepository(connection)
+        network, graph = load_network(road_segment_fetcher)
 
         #instantiate either fmm matcher or stmatcher, with all their parameters, depending on which algorithm user selected
         if algorithm == Algorithm.stmatch:
             params = {"k": k, "radius": radius, "gps_error": gps_error, "vmax": vmax, "factor": factor}
-            matcher = STmatcher(network, graph, params)
+            matcher = STMatcher(network, graph, params)
         else: 
             params = {"k": k, "radius": radius, "gps_error": gps_error, "delta": delta} 
             ubodt = load_ubodt(network, graph, delta)
-            matcher = FMMmatcher(network, graph, ubodt, params)
+            matcher = FMMMatcher(network, graph, ubodt, params)
 
         while True:
-            batch = tripFetcher.get_batch(dataset=dataset, batch_number = batch_number, batch_size= batch_size)
+            batch = trip_fetcher.get_batch(dataset=dataset, batch_number = batch_number, batch_size= batch_size)
             
             if limit is not None:
                 batch = batch[:limit - done]
@@ -70,7 +69,7 @@ def match(
             results = [matcher.match_trip(trip) for trip in batch]
             
             if not dry_run:
-                matchedtripUploader.save_all(results)
+                matched_trip_uploader.save_all(results)
             failed = sum(1 for r in results if r.status == "failed")
             total_failed += failed
             total_matched += len(results) - failed

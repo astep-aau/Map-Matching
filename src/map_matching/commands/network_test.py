@@ -1,10 +1,9 @@
-from mapmatching.algorithms.network import load_network
-from mapmatching.repositories.config import Settings
-from mapmatching.repositories.connection import connect
-from mapmatching.repositories.road_segment_repository import RoadSegmentRepository
+from map_matching.algorithms.network import load_network
+from map_matching.repositories.config import Settings
+from map_matching.repositories.connection import connect
+from map_matching.repositories.road_segment_repository import RoadSegmentRepository
 
-
-def networktest() -> None:
+def network_test() -> None:
     connection = connect(Settings.load_env_info())
     try:
         network, graph = load_network(RoadSegmentRepository(connection))
