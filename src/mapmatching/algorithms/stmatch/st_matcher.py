@@ -19,4 +19,5 @@ class STmatcher(BaseMatcher):
             timestamps = [float(point.timestamp) for point in trip.points]
 
             # Return the most likely route between the GPS points
-            return list(self.model.match_traj(Trajectory(0, line, timestamps), self.config).cpath)
+            result = self.model.match_traj(Trajectory(0, line, timestamps), self.config)
+            return list(result.cpath)

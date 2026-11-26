@@ -18,4 +18,5 @@ class FMMmatcher(BaseMatcher):
         self.config = FastMapMatchConfig(params["k"], params["radius"], params["gps_error"])
 
     def find_edges(self, trip: Trip) -> list[int]:
-        return list(self.model.match_wkt(trip_to_wkt(trip), self.config).cpath)
+        result = self.model.match_wkt(trip_to_wkt(trip), self.config)
+        return list(result.cpath)
