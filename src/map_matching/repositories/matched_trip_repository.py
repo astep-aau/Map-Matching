@@ -7,12 +7,14 @@ class MatchedTripRepository(BaseRepository):
 
     INSERT_SQL = (
         "INSERT INTO map_matching.matched_trajectories "
-        "(dataset, taxi_id, trajectory_id, algorithm, status, road_points, params) "
-        "VALUES (%s, %s, %s, %s, %s, %s, %s) "
+        "(dataset, taxi_id, trajectory_id, algorithm, status, road_points, params, origin_node_id, destination_node_id) "
+        "VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s) "
         "ON CONFLICT (dataset, taxi_id, trajectory_id, algorithm) DO UPDATE SET "
         "status = EXCLUDED.status, "
         "road_points = EXCLUDED.road_points, "
         "params = EXCLUDED.params, "
+        "origin_node_id = EXCLUDED.origin_node_id, "
+        "destination_node_id = EXCLUDED.destination_node_id,"
         "matched_at = now()"
     )
 
@@ -39,6 +41,8 @@ class MatchedTripRepository(BaseRepository):
             trip.status,
             Jsonb(road_points) if road_points is not None else None,
             Jsonb(trip.params),
+            trip.origin_node_id,
+            trip.destination_node_id,
         )
 
     def test_repository(self) -> str:
@@ -48,7 +52,7 @@ class MatchedTripRepository(BaseRepository):
         try:
             cursor.execute(
                 self.INSERT_SQL,
-                ("repository_test", "0", "0", "fmm", "failed", None, Jsonb({})),
+                ("repository_test", "0", "0", "fmm", "failed", None, Jsonb({}), None, None),
             )
         finally:
             cursor.close()

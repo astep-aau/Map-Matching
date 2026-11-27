@@ -49,3 +49,9 @@ class RoadSegmentRepository(BaseRepository):
         count = self.fetch("SELECT count(*) FROM osm_edges")[0][0]
         first = self.convert_to_road_segment(self.fetch("SELECT fid, u, v, length, highway, ST_AsText(geometry) FROM osm_edges LIMIT 1")[0])
         return f"Road Segment Repository has {count} rows, this is the first one: {first}"
+
+    def get_endpoints(self) -> dict[int, tuple[int, int]]:
+        """finds origin id and destination id"""
+        rows = self.fetch("SELECT fid, u, v FROM osm_edges")
+        return {row[0]: (row[1], row[2]) for row in rows}
+        

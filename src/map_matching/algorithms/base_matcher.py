@@ -22,18 +22,28 @@ class BaseMatcher(ABC):
     algorithm: str
 
     # Constructor for initialising the parameters
-    def __init__(self, params: dict):
+    def __init__(self, params: dict, edge_endpoints: dict[int, tuple[int, int]]):
         self.params = params
+        self.edge_endpoints = edge_endpoints
 
     # A trip needs at least two GPS points to have a route
     def match_trip(self, trip: Trip) -> MatchedTrip:
-        edge_ids = []
+        edge_ids: list[int] = []
+
+        origin = destination = None
         if len(trip.points) >= 2:
-            edge_ids = self.find_edges(trip)
+            try:
+                edge_ids = self.find_edges(trip)
+                if edge_ids:
+                    origin = self.edge_endpoints[edge_ids[0]][0]
+                    destination = self.edge_endpoints[edge_ids[-1]][1]
+            except Exception as error:
+                print(f"Trip {trip.id.trajectory_id} failed: {error}")
+                edge_ids, origin, destination = [], None, None
 
         # No roads found means the match failed
         status = "matched" if edge_ids else "failed"
-        return MatchedTrip(trip.id, self.algorithm, status, tuple(edge_ids), self.params)
+        return MatchedTrip(trip.id, self.algorithm, status, tuple(edge_ids), self.params, origin_node_id = origin, destination_node_id = destination)
 
     # Each algorithm writes its own version
     @abstractmethod

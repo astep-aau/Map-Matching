@@ -6,8 +6,8 @@ from map_matching.models.trip import Trip
 class STMatcher(BaseMatcher):
     algorithm = "stmatch"
 
-    def __init__(self, network: Network, graph: NetworkGraph, params: dict):
-        super().__init__(params)
+    def __init__(self, network: Network, graph: NetworkGraph, params: dict, edge_endpoints: dict):
+        super().__init__(params, edge_endpoints)
         self.model = STMATCH(network, graph)
         self.config = STMATCHConfig(params["k"], params["radius"], params["gps_error"], params["vmax"], params["factor"])
      
