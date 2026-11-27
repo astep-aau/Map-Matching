@@ -9,4 +9,6 @@ class MatchedTrip:
     algorithm: Literal["fmm", "stmatch"]
     status: Literal["matched", "failed"]
     road_points: tuple[int, ...] = ()             
-    params: dict = field(default_factory=dict)    
+    params: dict = field(default_factory=dict)
+    origin_node_id: int | None = None
+    destination_node_id: int | None = None

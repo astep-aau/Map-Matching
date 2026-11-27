@@ -52,11 +52,13 @@ def match(
         #instantiate either fmm matcher or stmatcher, with all their parameters, depending on which algorithm user selected
         if algorithm == Algorithm.stmatch:
             params = {"k": k, "radius": radius, "gps_error": gps_error, "vmax": vmax, "factor": factor}
-            matcher = STMatcher(network, graph, params)
+            edge_endpoints = road_segment_fetcher.get_endpoints()
+            matcher = STMatcher(network, graph, params, edge_endpoints)
         else: 
             params = {"k": k, "radius": radius, "gps_error": gps_error, "delta": delta} 
             ubodt = load_ubodt(network, graph, delta)
-            matcher = FMMMatcher(network, graph, ubodt, params)
+            edge_endpoints = road_segment_fetcher.get_endpoints()
+            matcher = FMMMatcher(network, graph, ubodt, params, edge_endpoints)
 
         while True:
             batch = trip_fetcher.get_batch(dataset=dataset, batch_number = batch_number, batch_size= batch_size)

@@ -6,8 +6,8 @@ from map_matching.models.trip import Trip
 class FMMMatcher(BaseMatcher):
     algorithm = "fmm"
     
-    def __init__(self, network, graph, ubodt, params: dict):
-        super().__init__(params)
+    def __init__(self, network, graph, ubodt, params: dict, edge_endpoints: dict):
+        super().__init__(params, edge_endpoints)
         self.network = network
         self.graph = graph
         self.ubodt = ubodt
